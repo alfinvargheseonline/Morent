@@ -9,7 +9,7 @@ export default function App() {
         <Text style={styles.logoText}>MORENT</Text>
         {/* Profile Image */}
         <Image
-          source={require('./assets/profile2.png')} // Replace with your profile image path
+          source={require('../assets/profile2.png')} // Replace with your profile image path
           style={styles.profileImage}
         />
       </View>
