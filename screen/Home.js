@@ -7,24 +7,36 @@ import {
   TouchableOpacity,
   TextInput,
   Dimensions,
-  Platform,
+  ScrollView,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import HomeBody from "./HomeBody";
 
 const { width } = Dimensions.get("window");
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      {/* Header Section */}
-      <Header />
+    <ScrollView style={styles.scrollContainer}>
+      <View style={styles.container}>
+        {/* Header Section */}
+        <Header />
 
-      {/* Search Bar Section */}
-      <SearchBar />
+        {/* Search Bar Section */}
+        <SearchBar />
 
-      {/* Advertisement Card */}
-      <AdCard />
-    </View>
+        {/* Advertisement Card */}
+        <AdCard />
+
+        {/* Pickup and Drop-off Cards */}
+        <PickupCard title="Pick – Up" />
+        <PickupCard title="Drop – Off" />
+
+        {/* Home Body Section */}
+        <View style={styles.homeBodyContainer}>
+          <HomeBody />
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -72,11 +84,115 @@ const AdCard = () => (
   </View>
 );
 
+// Pickup/Drop-off Card Component
+const PickupCard = ({ title }) => (
+  <View style={pickupStyles.card}>
+    {/* Header Section */}
+    <View style={pickupStyles.header}>
+      <View style={pickupStyles.radioContainer}>
+        <View style={pickupStyles.radioCircle} />
+      </View>
+      <Text style={pickupStyles.headerText}>{title}</Text>
+    </View>
+
+    {/* Options: Location, Date, Time */}
+    <View style={pickupStyles.optionsContainer}>
+      <Option label="Locations" value="Semarang" />
+      <Option label="Date" value="20 July 2022" />
+      <Option label="Time" value="07.00" />
+    </View>
+  </View>
+);
+
+// Option Component
+const Option = ({ label, value }) => (
+  <TouchableOpacity style={pickupStyles.option}>
+    <Text style={pickupStyles.label}>{label}</Text>
+    <View style={pickupStyles.valueContainer}>
+      <Text style={pickupStyles.valueText}>{value}</Text>
+      <MaterialIcons name="arrow-drop-down" size={20} color="#A9A9A9" />
+    </View>
+  </TouchableOpacity>
+);
+
+// Styles for Pickup/Drop-off Card
+const pickupStyles = StyleSheet.create({
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: 20,
+    width: width * 0.9,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    marginTop: 20,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  radioContainer: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: "#3B82F6",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  radioCircle: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#FFFFFF",
+  },
+  headerText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1A1A1A",
+  },
+  optionsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  option: {
+    flex: 1,
+    alignItems: "center",
+  },
+  label: {
+    fontSize: 12,
+    color: "#A9A9A9",
+    marginBottom: 5,
+  },
+  valueContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  valueText: {
+    fontSize: 14,
+    color: "#1A1A1A",
+    marginRight: 5,
+  },
+});
+
+// General Styles
 const styles = StyleSheet.create({
-  container: {
+  scrollContainer: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  container: {
     alignItems: "center",
+    paddingBottom: 20,
+  },
+  homeBodyContainer: {
+    flex: 1,
+    width: "90%",
+    marginTop: 20,
   },
   header: {
     flexDirection: "row",
@@ -146,7 +262,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     marginBottom: 20,
     left: -110,
-    },
+  },
   buttonText: {
     fontSize: 16,
     fontWeight: "bold",
@@ -157,7 +273,6 @@ const styles = StyleSheet.create({
     height: 100,
     position: "absolute",
     bottom: -50,
-    marginBottom:30,
-    
+    marginBottom: 30,
   },
 });
