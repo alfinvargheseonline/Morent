@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,14 @@ import HomeBody from "./HomeBody";
 const { width } = Dimensions.get("window");
 
 export default function App() {
+  const [pickUp, setPickUp] = useState("Semarang");
+  const [dropOff, setDropOff] = useState("20 July 2022");
+
+  const handleSwitch = () => {
+    setPickUp(dropOff);
+    setDropOff(pickUp);
+  };
+
   return (
     <ScrollView style={styles.scrollContainer}>
       <View style={styles.container}>
@@ -27,9 +35,14 @@ export default function App() {
         {/* Advertisement Card */}
         <AdCard />
 
-        {/* Pickup and Drop-off Cards */}
-        <PickupCard title="Pick – Up" />
-        <PickupCard title="Drop – Off" />
+        {/* Pickup Card */}
+        <PickupCard title="Pick – Up" location={pickUp} />
+
+        {/* Switch Button */}
+        <SwitchButton onSwitch={handleSwitch} />
+
+        {/* Drop-off Card */}
+        <PickupCard title="Drop – Off" location={dropOff} />
 
         {/* Home Body Section */}
         <View style={styles.homeBodyContainer}>
@@ -85,7 +98,7 @@ const AdCard = () => (
 );
 
 // Pickup/Drop-off Card Component
-const PickupCard = ({ title }) => (
+const PickupCard = ({ title, location }) => (
   <View style={pickupStyles.card}>
     {/* Header Section */}
     <View style={pickupStyles.header}>
@@ -97,7 +110,7 @@ const PickupCard = ({ title }) => (
 
     {/* Options: Location, Date, Time */}
     <View style={pickupStyles.optionsContainer}>
-      <Option label="Locations" value="Semarang" />
+      <Option label="Location" value={location} />
       <Option label="Date" value="20 July 2022" />
       <Option label="Time" value="07.00" />
     </View>
@@ -114,6 +127,36 @@ const Option = ({ label, value }) => (
     </View>
   </TouchableOpacity>
 );
+
+// Switch Component
+const SwitchButton = ({ onSwitch }) => (
+  <View style={switchStyles.container}>
+    <TouchableOpacity style={switchStyles.button} onPress={onSwitch}>
+      <MaterialIcons name="swap-vert" size={24} color="#FFFFFF" />
+    </TouchableOpacity>
+  </View>
+);
+
+// Styles for the Switch
+const switchStyles = StyleSheet.create({
+  container: {
+    marginVertical: 15,
+    alignItems: "center",
+  },
+  button: {
+    width: 50,
+    height: 50,
+    backgroundColor: "#3563E9",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+});
 
 // Styles for Pickup/Drop-off Card
 const pickupStyles = StyleSheet.create({
