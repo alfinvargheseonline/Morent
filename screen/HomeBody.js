@@ -64,11 +64,14 @@ export default function PopularCars() {
 const CarCard = ({ car }) => (
   <View style={styles.card}>
     {/* Car Image */}
+
+    <Text style={styles.carName}>{car.name}</Text>
+    <Text style={styles.carType}>{car.type}</Text>
+    
     <Image source={car.image} style={styles.carImage} resizeMode="contain" />
 
     {/* Car Info */}
-    <Text style={styles.carName}>{car.name}</Text>
-    <Text style={styles.carType}>{car.type}</Text>
+   
 
     {/* Specifications */}
     <View style={styles.specsContainer}>

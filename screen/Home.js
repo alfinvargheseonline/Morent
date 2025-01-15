@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import HomeBody from "./HomeBody";
+import RentalCars from "./RentalCars";
 
 const { width } = Dimensions.get("window");
 
@@ -47,8 +48,11 @@ export default function App() {
         {/* Home Body Section */}
         <View style={styles.homeBodyContainer}>
           <HomeBody />
+          
+          
         </View>
-      </View>
+        
+      </View><View><RentalCars /></View>
     </ScrollView>
   );
 }
@@ -304,7 +308,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 30,
     marginBottom: 20,
-    left: -110,
+    left: -100,
   },
   buttonText: {
     fontSize: 16,
