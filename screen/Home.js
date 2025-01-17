@@ -12,6 +12,7 @@ import {
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import HomeBody from "./HomeBody";
 import RentalCars from "./RentalCars";
+import CarView from "./CarView";
 
 const { width } = Dimensions.get("window");
 
@@ -53,6 +54,7 @@ export default function App() {
         </View>
         
       </View><View><RentalCars /></View>
+      
     </ScrollView>
   );
 }

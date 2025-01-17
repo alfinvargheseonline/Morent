@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get("window");
 
@@ -61,37 +62,40 @@ export default function PopularCars() {
   );
 }
 
-const CarCard = ({ car }) => (
-  <View style={styles.card}>
-    {/* Car Image */}
+const CarCard = ({ car }) => {
+  const navigation = useNavigation();
 
-    <Text style={styles.carName}>{car.name}</Text>
-    <Text style={styles.carType}>{car.type}</Text>
-    
-    <Image source={car.image} style={styles.carImage} resizeMode="contain" />
+  return (
+    <TouchableOpacity 
+      style={styles.card} 
+      onPress={() => navigation.navigate('CarView', { car })}
+    >
+      {/* Car Image */}
+      <Text style={styles.carName}>{car.name}</Text>
+      <Text style={styles.carType}>{car.type}</Text>
+      <Image source={car.image} style={styles.carImage} resizeMode="contain" />
 
-    {/* Car Info */}
-   
+      {/* Car Info */}
+      {/* Specifications */}
+      <View style={styles.specsContainer}>
+        <Text style={styles.specText}>{car.fuel}</Text>
+        <Text style={styles.specText}>{car.transmission}</Text>
+        <Text style={styles.specText}>{car.capacity}</Text>
+      </View>
 
-    {/* Specifications */}
-    <View style={styles.specsContainer}>
-      <Text style={styles.specText}>{car.fuel}</Text>
-      <Text style={styles.specText}>{car.transmission}</Text>
-      <Text style={styles.specText}>{car.capacity}</Text>
-    </View>
+      {/* Pricing */}
+      <View style={styles.priceContainer}>
+        <Text style={styles.price}>{car.price}</Text>
+        {car.oldPrice && <Text style={styles.oldPrice}>{car.oldPrice}</Text>}
+      </View>
 
-    {/* Pricing */}
-    <View style={styles.priceContainer}>
-      <Text style={styles.price}>{car.price}</Text>
-      {car.oldPrice && <Text style={styles.oldPrice}>{car.oldPrice}</Text>}
-    </View>
-
-    {/* Rental Button */}
-    <TouchableOpacity style={styles.rentalButton}>
-      <Text style={styles.rentalText}>Rental Now</Text>
+      {/* Rental Button */}
+      <TouchableOpacity style={styles.rentalButton}>
+        <Text style={styles.rentalText}>Rental Now</Text>
+      </TouchableOpacity>
     </TouchableOpacity>
-  </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

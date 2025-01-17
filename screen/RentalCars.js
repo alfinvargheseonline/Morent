@@ -8,6 +8,7 @@ import {
   FlatList,
   Dimensions,
 } from "react-native";
+import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
@@ -76,20 +77,27 @@ const cars = [
 ];
 
 const RentalCars = () => {
+  const navigation = useNavigation();
+
+  const renderItem = ({ item }) => (
+    <CarCard car={item} navigation={navigation} />
+  );
+
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={cars}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <CarCard car={item} />}
-        contentContainerStyle={styles.listContainer}
-      />
-    </View>
+    <FlatList
+      data={cars}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.id}
+      contentContainerStyle={styles.listContainer}
+    />
   );
 };
 
-const CarCard = ({ car }) => (
-  <View style={styles.card}>
+const CarCard = ({ car, navigation }) => (
+  <TouchableOpacity 
+    style={styles.card} 
+    onPress={() => navigation.navigate('CarView', { car })}
+  >
     {/* Header Section */}
     <View style={styles.header}>
       <Text style={styles.carName}>{car.name}</Text>
@@ -129,7 +137,7 @@ const CarCard = ({ car }) => (
         </TouchableOpacity>
       </View>
     </View>
-  </View>
+  </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
