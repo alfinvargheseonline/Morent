@@ -3,6 +3,8 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import Home from "./screen/Home";
 import CarView from "./screen/CarView";
+import Payment from "./screen/Payment";
+import Final from "./screen/Final";
 
 const Stack = createStackNavigator();
 
@@ -19,6 +21,17 @@ export default function App() {
         <Stack.Screen
           name="CarView"
           component={CarView}
+          options={{ headerShown: false }} // Hide the header for the Homepage screen
+        />
+         <Stack.Screen
+          name="Payment"
+          component={Payment}
+          options={{ headerShown: false }} // Hide the header for the Homepage screen
+        />
+
+<Stack.Screen
+          name="Final"
+          component={Final}
           options={{ headerShown: false }} // Hide the header for the Homepage screen
         />
       </Stack.Navigator>
