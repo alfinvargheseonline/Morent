@@ -47,7 +47,7 @@ const cars = [
   },
 ];
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCar, setSelectedCar] = useState(cars[0]);
 
@@ -55,12 +55,7 @@ export default function HomeScreen({ navigation }) {
     alert("Filter functionality is not yet implemented!");
   };
 
-  const handleBookNow = () => {
-    navigation.navigate('Payment', {
-      carDetails: selectedCar
-    });
-  };
-
+  
   const filteredCars = cars.filter((car) =>
     car.name.toLowerCase().includes(searchQuery.toLowerCase())
   );

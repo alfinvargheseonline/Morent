@@ -1,7 +1,9 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from "react-native";
+import { useNavigation } from '@react-navigation/native';
 
-const CarRentalCard = () => {
+const DetailsCard = () => {
+    const navigation = useNavigation();
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.card}>
@@ -41,14 +43,18 @@ const CarRentalCard = () => {
 
         {/* Pricing and Button */}
         <View style={styles.footer}>
-          <Text style={styles.priceText}>
-            <Text style={styles.discountedPrice}>$80.00</Text> / days
-          </Text>
-          <Text style={styles.originalPrice}>$100.00</Text>
-          <TouchableOpacity style={styles.rentButton}>
-            <Text style={styles.rentButtonText}>Rent Now</Text>
-          </TouchableOpacity>
-        </View>
+  <Text style={styles.priceText}>
+    <Text style={styles.discountedPrice}>$80.00</Text> / days
+  </Text>
+  <Text style={styles.originalPrice}>$100.00</Text>
+  <TouchableOpacity 
+    style={styles.rentButton} 
+    onPress={() => navigation.navigate('Payment')} // Navigation logic
+  >
+    <Text style={styles.rentButtonText}>Rent Now</Text>
+  </TouchableOpacity>
+</View>
+
       </View>
     </ScrollView>
   );
@@ -153,4 +159,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CarRentalCard;
+export default DetailsCard;

@@ -5,6 +5,7 @@ import Home from "./screen/Home";
 import CarView from "./screen/CarView";
 import Payment from "./screen/Payment";
 import Final from "./screen/Final";
+import DetailsCard from "./screen/DetailsCard";
 
 const Stack = createStackNavigator();
 
@@ -23,15 +24,20 @@ export default function App() {
           component={CarView}
           options={{ headerShown: false }} // Hide the header for the Homepage screen
         />
-         <Stack.Screen
+        <Stack.Screen
           name="Payment"
           component={Payment}
           options={{ headerShown: false }} // Hide the header for the Homepage screen
         />
 
-<Stack.Screen
+        <Stack.Screen
           name="Final"
           component={Final}
+          options={{ headerShown: false }} // Hide the header for the Homepage screen
+        />
+        <Stack.Screen
+          name="DetailsCard"
+          component={DetailsCard}
           options={{ headerShown: false }} // Hide the header for the Homepage screen
         />
       </Stack.Navigator>

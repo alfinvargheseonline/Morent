@@ -11,7 +11,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 export default function Payment({ route, navigation }) {
-  const { carDetails } = route.params || { name: "Nissan GT-R", price: "80.00" };
+  const { carDetails = { name: "Nissan GT-R", price: "80.00" } } = route.params || {};
+
   
   const [formData, setFormData] = useState({
     name: '',
