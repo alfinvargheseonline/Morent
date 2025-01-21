@@ -18,7 +18,7 @@ const cars = [
     id: "1",
     name: "All New Rush",
     type: "SUV",
-    image: require("../assets/car.png"), // Replace with your car image
+    image: require("../assets/rolls.png"), // Replace with your car image
     fuel: "70L",
     transmission: "Manual",
     capacity: "6 People",
@@ -30,7 +30,7 @@ const cars = [
     id: "2",
     name: "CR-V",
     type: "SUV",
-    image: require("../assets/car.png"), // Replace with your car image
+    image: require("../assets/Gtr.png"), // Replace with your car image
     fuel: "80L",
     transmission: "Manual",
     capacity: "6 People",
@@ -54,7 +54,7 @@ const cars = [
     id: "4",
     name: "New MG ZS",
     type: "SUV",
-    image: require("../assets/car.png"), // Replace with your car image
+    image: require("../assets/Gtr.png"), // Replace with your car image
     fuel: "80L",
     transmission: "Manual",
     capacity: "6 People",
@@ -66,7 +66,7 @@ const cars = [
     id: "5",
     name: "MG ZX Exclusive",
     type: "Hatchback",
-    image: require("../assets/car.png"), // Replace with your car image
+    image: require("../assets/rolls.png"), // Replace with your car image
     fuel: "70L",
     transmission: "Manual",
     capacity: "6 People",

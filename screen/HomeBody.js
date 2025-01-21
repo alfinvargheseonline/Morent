@@ -29,7 +29,7 @@ const cars = [
     id: "2",
     name: "Nissan GT",
     type: "Sport",
-    image: require("../assets/car.png"), // Replace with your car image
+    image: require("../assets/Gtr.png"), // Replace with your car image
     fuel: "80L",
     transmission: "Manual",
     capacity: "2 People",

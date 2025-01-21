@@ -9,6 +9,8 @@ import {
   Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import CarRentalStats from "./CarRentalStats"; // Adjust the path as necessary
+import Map from "./Map"; // Adjust the path as necessary
 
 export default function DashboardScreen() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,12 +43,14 @@ export default function DashboardScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Detail Rental</Text>
         <View style={styles.rentalDetailsCard}>
-          <View style={styles.mapPlaceholder}>
-            <Ionicons name="map-outline" size={48} color="#007BFF" />
+          <View style={styles.map}>
+            <Map />
           </View>
-          <View style={styles.carDetails}>
+          
+        </View>
+        <View style={styles.carDetails}>
             <Image
-              source={{ uri: "https://via.placeholder.com/80" }}
+              source={require("../assets/car.png")}
               style={styles.carImage}
             />
             <View>
@@ -55,8 +59,6 @@ export default function DashboardScreen() {
             </View>
           </View>
           <Text style={styles.rentalId}>#9761</Text>
-        </View>
-
         {/* Pick-Up Section */}
         <View style={styles.rentalSubsection}>
           <Text style={styles.subsectionTitle}>Pick-Up</Text>
@@ -81,21 +83,7 @@ export default function DashboardScreen() {
 
       {/* Top 5 Car Rental */}
       <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Top 5 Car Rental</Text>
-          <Ionicons name="ellipsis-horizontal" size={20} color="#000" />
-        </View>
-        <View style={styles.chartPlaceholder}>
-          <Text style={styles.chartText}>72,030</Text>
-          <Text style={styles.chartSubText}>Rental Car</Text>
-        </View>
-        <View style={styles.carStats}>
-          <Text style={styles.carStat}>Sport Car - 17,439</Text>
-          <Text style={styles.carStat}>SUV - 9,478</Text>
-          <Text style={styles.carStat}>Coupe - 18,197</Text>
-          <Text style={styles.carStat}>Hatchback - 12,510</Text>
-          <Text style={styles.carStat}>MPV - 14,406</Text>
-        </View>
+        <CarRentalStats />
       </View>
 
       {/* Recent Transactions */}
@@ -110,7 +98,7 @@ export default function DashboardScreen() {
           (car, index) => (
             <View key={index} style={styles.transactionRow}>
               <Image
-                source={{ uri: "https://via.placeholder.com/50" }}
+                source={require("../assets/car.png")}
                 style={styles.transactionCarImage}
               />
               <View style={styles.transactionInfo}>
@@ -134,15 +122,14 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 20,
-    marginBottom: 20,
+    alignItems: "center",
+    marginBottom: 16,
   },
   logoText: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#1A73E8",
+    color: "#007BFF",
   },
   profileImage: {
     width: 40,
@@ -185,24 +172,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 8,
   },
-  subsectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
   rentalDetailsCard: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 16,
   },
-  mapPlaceholder: {
-    width: 80,
-    height: 80,
-    backgroundColor: "#f0f0f0",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 8,
-    marginRight: 16,
+  map: {
+    width: 350, // Reduced map width
+    height: 250, // Reduced map height
+    borderRadius: 8, // Rounded corners
+    overflow: "hidden", // Ensure border radius is applied
+    marginLeft: 5, // Spacing between map and car details
   },
   carDetails: {
     flex: 1,
@@ -210,10 +190,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   carImage: {
-    width: 80,
-    height: 50,
-    borderRadius: 4,
-    marginRight: 16,
+    width: '40%', // Adjusted image width
+    height: 40,
+    
+    marginLeft: 10,
   },
   carName: {
     fontSize: 16,
@@ -250,33 +230,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#007BFF",
   },
-  chartPlaceholder: {
-    alignItems: "center",
-    marginVertical: 16,
-  },
-  chartText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  chartSubText: {
-    fontSize: 16,
-    color: "#666",
-  },
-  carStats: {
-    marginTop: 8,
-  },
-  carStat: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
   transactionRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 16,
   },
   transactionCarImage: {
-    width: 50,
+    width: 80,
     height: 50,
     borderRadius: 8,
     marginRight: 16,

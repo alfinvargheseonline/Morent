@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import DetailsCard from "./DetailsCard";
 
 const cars = [
   {
@@ -20,7 +21,7 @@ const cars = [
     fuel: "Petrol",
     transmission: "Automatic",
     capacity: "4",
-    image: require("../assets/car.png"),
+    image: require("../assets/Gtr.png"),
     reviews: [
       { id: "1", name: "Alex Stanton", comment: "Amazing car!", rating: 4.5 },
       { id: "2", name: "Skyler Dias", comment: "Very comfortable ride.", rating: 4.0 },
@@ -42,7 +43,7 @@ const cars = [
     fuel: "Hybrid",
     transmission: "Automatic",
     capacity: "5",
-    image: require("../assets/car.png"),
+    image: require("../assets/rolls.png"),
   },
 ];
 
@@ -98,14 +99,7 @@ export default function HomeScreen({ navigation }) {
 
       {/* Car Details */}
       <View style={styles.carDetails}>
-        <Text style={styles.carName}>{selectedCar.name}</Text>
-        <Text style={styles.carPrice}>${selectedCar.price}/day</Text>
-        <TouchableOpacity style={styles.bookButton} onPress={handleBookNow}>
-          <Text style={styles.bookButtonText}>Book Now</Text>
-        </TouchableOpacity>
-        <Text style={styles.specs}>Fuel: {selectedCar.fuel}</Text>
-        <Text style={styles.specs}>Transmission: {selectedCar.transmission}</Text>
-        <Text style={styles.specs}>Capacity: {selectedCar.capacity}</Text>
+       <DetailsCard/>
       </View>
 
       {/* Reviews */}
