@@ -236,8 +236,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   transactionCarImage: {
-    width: 80,
-    height: 50,
+    width: '40%',
+    height: 30,
     borderRadius: 8,
     marginRight: 16,
   },
