@@ -91,7 +91,8 @@ const CarCard = ({ car }) => {
 
       {/* Rental Button */}
       <TouchableOpacity style={styles.rentalButton}>
-        <Text style={styles.rentalText}>Rental Now</Text>
+        <Text style={styles.rentalText}
+        onPress={() => navigation.navigate('CarView', { car })}>Rental Now</Text>
       </TouchableOpacity>
     </TouchableOpacity>
   );

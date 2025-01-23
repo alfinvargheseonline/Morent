@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,12 +8,12 @@ import {
   FlatList,
   Dimensions,
 } from "react-native";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
-const cars = [
+const initialCars = [
   {
     id: "1",
     name: "All New Rush",
@@ -78,9 +78,18 @@ const cars = [
 
 const RentalCars = () => {
   const navigation = useNavigation();
+  const [cars, setCars] = useState(initialCars);
+
+  const toggleFavorite = (id) => {
+    setCars((prevCars) =>
+      prevCars.map((car) =>
+        car.id === id ? { ...car, isFavorite: !car.isFavorite } : car
+      )
+    );
+  };
 
   const renderItem = ({ item }) => (
-    <CarCard car={item} navigation={navigation} />
+    <CarCard car={item} navigation={navigation} toggleFavorite={toggleFavorite} />
   );
 
   return (
@@ -93,15 +102,15 @@ const RentalCars = () => {
   );
 };
 
-const CarCard = ({ car, navigation }) => (
-  <TouchableOpacity 
-    style={styles.card} 
-    onPress={() => navigation.navigate('CarView', { car })}
+const CarCard = ({ car, navigation, toggleFavorite }) => (
+  <TouchableOpacity
+    style={styles.card}
+    onPress={() => navigation.navigate("CarView", { car })}
   >
     {/* Header Section */}
     <View style={styles.header}>
       <Text style={styles.carName}>{car.name}</Text>
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => toggleFavorite(car.id)}>
         <MaterialIcons
           name={car.isFavorite ? "favorite" : "favorite-border"}
           size={24}
@@ -133,7 +142,8 @@ const CarCard = ({ car, navigation }) => (
 
         {/* Rental Button */}
         <TouchableOpacity style={styles.rentalButton}>
-          <Text style={styles.rentalText}>Rental Now</Text>
+          <Text style={styles.rentalText}
+          onPress={() => navigation.navigate("CarView", { car })}>Rental Now</Text>
         </TouchableOpacity>
       </View>
     </View>
