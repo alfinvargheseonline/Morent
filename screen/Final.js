@@ -91,7 +91,7 @@ export default function DashboardScreen() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recent Transactions</Text>
           <TouchableOpacity>
-            <Text style={styles.viewAllText}>View All</Text>
+            <Text style={styles.viewAllText}></Text>
           </TouchableOpacity>
         </View>
         {["Nissan GT - R", "Koenigsegg", "Rolls - Royce", "CR - V"].map(
@@ -258,6 +258,12 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   viewAllText: {
-    color: "#007BFF",
+    color: "#ff",
+    fontWeight: "bold",
+  },
+  subsectionTitle: {  // Added style for subsection title 
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 8,
   },
 });

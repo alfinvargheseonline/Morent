@@ -5,10 +5,10 @@ import MapView, { Polyline, Marker } from 'react-native-maps';
 const MapRoute = () => {
   // Example coordinates for the route - replace with your actual route coordinates
   const routeCoordinates = [
-    { latitude: 37.78825, longitude: -122.4324 },
+    { latitude: 37.78825, longitude: -122.4425 },
     { latitude: 37.78825, longitude: -122.4314 },
     { latitude: 37.78795, longitude: -122.4314 },
-    { latitude: 37.78795, longitude: -122.4304 },
+    { latitude: 37.78795, longitude: -122.4305 },
   ];
 
   const initialRegion = {
