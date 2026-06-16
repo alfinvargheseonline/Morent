@@ -1,0 +1,952 @@
+================================================================================
+JIRA ISSUE INTELLIGENCE CHATBOT — COMPLETE BUILD PROMPT
+Storage: JSON Files Only | Frontend: HTML + Bootstrap 5 | Backend: Python FastAPI
+================================================================================
+
+SYSTEM ROLE:
+You are a senior full-stack engineer. Build a complete Jira Issue
+Intelligence Chatbot using HTML + Bootstrap 5 frontend and Python
+FastAPI backend. All storage is JSON files only — no database,
+no Redis, no external services. ML models are trained from scratch
+on Jira data with no third-party AI APIs.
+
+================================================================================
+PROJECT NAME: Jira Issue Intelligence Chatbot
+STORAGE: JSON Files Only
+================================================================================
+
+TECH STACK:
+--------------------------------------------------------------------------------
+Frontend   : HTML5, Bootstrap 5.3, Vanilla JS, Chart.js
+Backend    : Python 3.10+, FastAPI, Uvicorn, WebSockets
+ML Layer   : TensorFlow/Keras (BiLSTM), Gensim (Word2Vec),
+             FAISS (vector search), scikit-learn
+NLP        : NLTK, regex-based entity extraction
+Storage    : JSON Files only (no DB, no Redis)
+Deployment : Docker (single container)
+--------------------------------------------------------------------------------
+
+================================================================================
+PROJECT FOLDER STRUCTURE
+================================================================================
+
+jira-ai-chatbot/
+├── data/
+│   ├── jira_issues.json          ← Main issue data (Jira export)
+│   ├── patterns/
+│   │   └── clusters.json         ← Discovered issue patterns
+│   └── sessions/
+│       └── {session_id}.json     ← One file per chat session
+├── models/
+│   ├── jira_word2vec.model       ← Trained Word2Vec
+│   ├── best_model.keras          ← BiLSTM classifier
+│   ├── tokenizer.pkl             ← Tokenizer
+│   ├── label_encoder.pkl         ← Label encoder
+│   ├── jira.index                ← FAISS vector index
+│   └── jira_meta.json            ← Issue metadata for FAISS
+├── frontend/
+│   ├── index.html
+│   ├── dashboard.html
+│   ├── issues.html
+│   └── assets/
+│       ├── css/custom.css
+│       └── js/
+│           ├── chat.js
+│           ├── dashboard.js
+│           └── api.js
+├── backend/
+│   ├── main.py
+│   ├── chatbot.py
+│   ├── intent_classifier.py
+│   ├── entity_extractor.py
+│   ├── rag_engine.py
+│   ├── response_generator.py
+│   ├── conversation_memory.py
+│   ├── preprocessor.py
+│   ├── routers/
+│   │   ├── chat.py
+│   │   ├── predict.py
+│   │   ├── similarity.py
+│   │   └── dashboard.py
+│   └── services/
+│       ├── model_service.py
+│       ├── json_store.py         ← Replaces all DB logic
+│       └── vector_store.py
+├── ml/
+│   ├── train_embeddings.py
+│   ├── train_model.py
+│   ├── build_index.py
+│   └── evaluate.py
+└── docker-compose.yml
+
+================================================================================
+JSON FILE STORAGE LAYER
+================================================================================
+
+All data lives in these JSON files:
+
+data/jira_issues.json
+--------------------------------------------------------------------------------
+Array of issue objects. Each object:
+{
+  "issue_id"           : "PROJ-1001",
+  "title"              : string,
+  "description"        : string,
+  "comments"           : [string],
+  "resolution"         : string,
+  "resolution_comment" : string,
+  "root_cause"         : string,
+  "labels"             : [string],
+  "component"          : string,
+  "priority"           : "Critical|High|Medium|Low",
+  "issue_type"         : "Bug|Task|Story|Incident",
+  "status"             : "Open|In Progress|Closed",
+  "time_to_close"      : float (days),
+  "created_at"         : ISO datetime string,
+  "closed_at"          : ISO datetime string
+}
+
+data/sessions/{session_id}.json
+--------------------------------------------------------------------------------
+One file per active chat session:
+{
+  "session_id"  : string,
+  "history"     : [
+    {
+      "user"      : string,
+      "bot"       : string,
+      "timestamp" : ISO datetime string
+    }
+  ],
+  "context": {
+    "last_api"    : string or null,
+    "last_error"  : string or null,
+    "last_issues" : [string],
+    "last_intent" : string or null
+  },
+  "created_at"  : ISO datetime string,
+  "last_active" : ISO datetime string
+}
+
+data/patterns/clusters.json
+--------------------------------------------------------------------------------
+Generated after clustering:
+[
+  {
+    "cluster_id"              : int,
+    "size"                    : int,
+    "top_keywords"            : [string],
+    "avg_resolution_hours"    : float,
+    "representative_issues"   : [string]
+  }
+]
+
+models/jira_meta.json
+--------------------------------------------------------------------------------
+Metadata array for FAISS index lookup:
+[
+  {
+    "issue_id"           : string,
+    "title"              : string,
+    "resolution"         : string,
+    "resolution_comment" : string,
+    "priority"           : string,
+    "component"          : string,
+    "time_to_close"      : float,
+    "labels"             : [string]
+  }
+]
+
+================================================================================
+SAMPLE DATA — data/jira_issues.json (50 issues minimum)
+================================================================================
+
+Include realistic sample issues covering:
+- Payment API errors (503, timeout, connection refused)
+- Auth API failures (401, JWT expiry, token mismatch)
+- Order Service bugs (500, null pointer, deadlock)
+- Inventory API issues (404, data sync failures)
+- User Service problems (OOM, slow response, SSL errors)
+- Database issues (connection pool, deadlock, replication lag)
+- Infrastructure issues (pod crash, memory leak, disk full)
+
+Each issue must have:
+- Realistic title and description
+- At least 2-3 comments showing investigation steps
+- A resolution_comment explaining the actual fix
+- A root_cause field
+- Realistic time_to_close values (0.1 to 5.0 days)
+
+================================================================================
+services/json_store.py
+================================================================================
+
+Build class JsonStore with these methods:
+
+__init__(self):
+  self.issues_path    = "data/jira_issues.json"
+  self.sessions_dir   = "data/sessions"
+  self.patterns_path  = "data/patterns/clusters.json"
+  self.meta_path      = "models/jira_meta.json"
+  os.makedirs("data/sessions", exist_ok=True)
+  os.makedirs("data/patterns", exist_ok=True)
+  self._issues_cache  = None    <- in-memory cache after first load
+
+load_issues(self) -> list:
+  If cache exists return cache
+  Read data/jira_issues.json
+  Store in self._issues_cache
+  Return list
+
+search_issues(self, filters: dict) -> list:
+  Load all issues
+  Filter by: priority, issue_type, status,
+             component, date range, keyword in title/description
+  Return filtered list
+
+get_issue_by_id(self, issue_id: str) -> dict or None:
+  Load all issues
+  Return first match on issue_id field
+
+get_dashboard_stats(self) -> dict:
+  Load all issues
+  Compute:
+    total_issues           = len(issues)
+    patterns_discovered    = count from clusters.json
+    avg_resolution_hours   = mean of time_to_close * 24
+    duplicate_rate         = count(resolution=="Duplicate") / total
+    issue_type_distribution= Counter on issue_type field
+    priority_distribution  = Counter on priority field
+    daily_trend            = group by created_at date, last 30 days
+    top_patterns           = top 5 from clusters.json by size
+    recent_critical        = last 5 Critical+Open issues
+  Return as dict
+
+load_session(self, session_id: str) -> dict:
+  path = data/sessions/{session_id}.json
+  If file exists: read and return
+  Else return new empty session dict
+
+save_session(self, session_id: str, session: dict):
+  path = data/sessions/{session_id}.json
+  Write session dict as JSON with indent=2
+
+cleanup_sessions(self, expire_minutes=30):
+  For each file in data/sessions/
+    If last_active older than expire_minutes: delete file
+
+load_patterns(self) -> list:
+  Read data/patterns/clusters.json
+  Return list (empty list if file not found)
+
+save_patterns(self, clusters: list):
+  Write to data/patterns/clusters.json with indent=2
+
+load_meta(self) -> list:
+  Read models/jira_meta.json
+  Return list
+
+save_meta(self, meta: list):
+  Write to models/jira_meta.json with indent=2
+
+================================================================================
+conversation_memory.py
+================================================================================
+
+Class ConversationMemory using JsonStore:
+
+__init__(self):
+  self.store     = JsonStore()
+  self.max_turns = 10
+  self._cache    = {}     <- active sessions in RAM
+
+get_or_create(self, session_id) -> dict:
+  If session_id in self._cache: return it
+  Load from json_store.load_session(session_id)
+  Store in cache and return
+
+update(self, session_id, user_msg,
+       bot_response, entities, intent):
+  session = get_or_create(session_id)
+  Append to history (keep last max_turns only)
+  Update context fields:
+    last_api    <- entities["apis"][0] if present
+    last_error  <- entities["errors"][0] if present
+    last_intent <- intent
+    last_active <- datetime.now().isoformat()
+  Update cache
+  Save via json_store.save_session()
+
+enrich_with_context(self, entities, session_id) -> dict:
+  session = get_or_create(session_id)
+  ctx = session["context"]
+  If entities["apis"] empty and ctx["last_api"] exists:
+    entities["apis"] = [ctx["last_api"]]
+  If entities["errors"] empty and ctx["last_error"] exists:
+    entities["errors"] = [ctx["last_error"]]
+  Return enriched entities
+
+================================================================================
+STARTUP SEQUENCE (main.py)
+================================================================================
+
+@app.on_event("startup")
+async def startup():
+  Step 1: Create all directories
+    data/, data/sessions/, data/patterns/, models/
+
+  Step 2: Validate jira_issues.json exists
+    If not found: print warning + create empty file
+
+  Step 3: Load ML models via ModelService singleton
+    Load Word2Vec, BiLSTM, tokenizer,
+    label encoder, regressor
+
+  Step 4: Load FAISS index
+    Load jira.index + jira_meta.json
+    If not found: run build_index on jira_issues.json
+
+  Step 5: Start session cleanup background task
+    Every 10 minutes: cleanup_sessions(expire_minutes=30)
+
+  Step 6: Print startup summary
+    Total issues loaded: N
+    FAISS index size: N
+    Models ready: Yes/No
+
+================================================================================
+FRONTEND REQUIREMENTS
+================================================================================
+
+PAGE 1 — index.html (Chat Interface)
+--------------------------------------------------------------------------------
+Layout:
+- Fixed left sidebar (260px), bg #1a1a2e
+  * App logo + name "Jira AI Assistant" at top
+  * Nav: Chat (active), Dashboard, Issues
+  * Section "Recent Sessions" with list
+    Each item: session snippet + timestamp
+    Clicking loads that session history
+  * Bottom: green pulsing dot + "Model Ready"
+
+- Chat area (full remaining width):
+  * Header bar: "Jira Issue Intelligence" + session ID badge
+
+  * Message window (flex column, overflow-y scroll):
+    Bot messages (left):
+      Bootstrap card, bg #2d2d44, rounded-end-4
+      Bot avatar icon (Bootstrap robot icon or emoji)
+      Message text
+      Below message: matched issue badges (clickable)
+        Each badge: clickable -> opens issue modal
+      Timestamp (small muted text)
+
+    User messages (right):
+      bg-primary, text-white, rounded-start-4
+      Timestamp right-aligned
+
+    Typing indicator:
+      3 animated bouncing dots (CSS keyframes)
+      Show while waiting for response
+
+  * Welcome message on load:
+    "Hello! I'm your Jira AI Assistant.
+     Describe any API issue or ask about past
+     incidents and I'll find patterns and fixes
+     from your issue history."
+
+  * Quick suggestion chips (above input bar):
+    Bootstrap outline badges, clickable:
+    "Why is Payment API failing?"
+    "Common fixes for 503 errors"
+    "Recent critical issues this week"
+    "Auth API timeout resolution"
+    On click: populate input + auto-send
+
+  * Input bar (fixed bottom, bg #1a1a2e):
+    Text input (flex-grow, dark theme)
+    Send button (btn-primary, paper plane icon)
+    Enter key triggers send
+
+PAGE 2 — dashboard.html
+--------------------------------------------------------------------------------
+- Same sidebar as index.html
+
+- Top row: 4 stat cards (Bootstrap col-3 each)
+  Card 1: Total Issues (display-4 number, blue icon)
+  Card 2: Patterns Found (display-4, purple icon)
+  Card 3: Avg Fix Time in hours (display-4, green icon)
+  Card 4: Duplicate Rate % (display-4, orange icon)
+  All values loaded from GET /api/v1/dashboard/stats
+
+- Row 2 (two charts side by side):
+  Left:  Chart.js Doughnut — Issue type distribution
+  Right: Chart.js Bar — Issues by priority (color coded:
+    Critical=red, High=orange, Medium=blue, Low=green)
+
+- Row 3:
+  Full width: Chart.js Line chart
+  Title: "Issue Trend — Last 30 Days"
+  X-axis: dates, Y-axis: issue count
+  Smooth curve, filled area below line
+
+- Row 4: "Discovered Patterns"
+  Bootstrap card grid (3 per row)
+  Each card:
+    Header: "Pattern #{cluster_id}" + issue count badge
+    Body: top keywords as Bootstrap badges
+    Footer: avg resolution time + representative issues
+
+- Row 5: "Recent Critical Issues"
+  Bootstrap table (striped, dark theme):
+  Columns: Issue ID | Title | Component |
+            Created | Status | Action
+  Action: "Ask AI" button ->
+    opens chat with pre-filled message
+
+PAGE 3 — issues.html
+--------------------------------------------------------------------------------
+- Same sidebar
+
+- Search section:
+  Full-width search input: "Search issues by title,
+    description, error code..."
+  Filter row (Bootstrap inline form):
+    Priority dropdown, Issue Type dropdown,
+    Status dropdown, Date Range (two date inputs)
+  Search button (btn-primary)
+  Results count badge (updates after search)
+
+- Results grid (Bootstrap row, 2 cards per row):
+  Each issue card:
+    Card header: Issue ID badge + Priority badge (colored)
+    Card body:
+      Title (h6)
+      Description (2 lines, text-truncate)
+      Component + Issue Type (muted small text)
+      If similarity search: progress bar showing match %
+    Card footer:
+      Status badge + Time to Close
+      "View Details" button (btn-outline-primary, sm)
+      "Ask AI About This" button (btn-outline-success, sm)
+
+  "View Details" -> Bootstrap modal:
+    Modal header: Issue ID + Title
+    Modal body tabs (Bootstrap tabs):
+      Tab 1 — Details:
+        Full description, component, priority,
+        created/closed dates, time to close
+      Tab 2 — Comments:
+        All comments as timeline (Bootstrap list-group)
+      Tab 3 — Resolution:
+        Resolution type, resolution comment, root cause
+      Tab 4 — Similar Issues:
+        List of top 5 similar issues with
+        similarity score progress bars
+    Modal footer: "Ask AI About This" button
+
+  "Ask AI About This" button behavior:
+    Redirect to index.html?prefill=PROJ-1001
+    On load: detect prefill param ->
+      auto-fill input with "Tell me about PROJ-1001"
+      auto-send the message
+
+================================================================================
+JAVASCRIPT FILES
+================================================================================
+
+assets/js/api.js:
+--------------------------------------------------------------------------------
+const BASE_URL = "http://localhost:8000"
+
+Functions:
+  searchIssues(filters)     -> GET /api/v1/issues/search
+  getIssueById(issueId)     -> GET /api/v1/issues/{id}
+  getSimilarIssues(issueId) -> GET /api/v1/similar/{id}
+  getDashboardStats()       -> GET /api/v1/dashboard/stats
+  getSessionHistory(sid)    -> GET /api/v1/sessions/{sid}
+
+All functions: async/await, try/catch,
+return null on error, log errors to console
+
+assets/js/chat.js:
+--------------------------------------------------------------------------------
+On page load:
+  Generate session_id = crypto.randomUUID()
+  Store in sessionStorage
+  Connect WebSocket: ws://localhost:8000/ws/chat/{session_id}
+  Load session history if session exists (via API)
+  Check URL for ?prefill= param -> auto-send if found
+
+WebSocket handlers:
+  onopen    -> enable input, hide connecting spinner
+  onmessage -> parse JSON response:
+    if type=="typing": show typing indicator
+    if type=="response":
+      hide typing indicator
+      render bot message with matched issue badges
+      auto-scroll to bottom
+  onclose   -> show reconnect button, attempt reconnect
+               after 3 seconds (max 3 retries)
+  onerror   -> show error toast
+
+sendMessage():
+  Disable input + button
+  Render user message immediately
+  Send JSON: { "message": userText }
+  Clear input
+
+renderBotMessage(response):
+  Create message card div
+  Add text content
+  If matched_issues not empty:
+    Add "Related Issues:" label
+    For each issue_id: add clickable badge
+    Badge onclick: fetch issue details -> show modal
+  Add intent chip (small muted badge showing detected intent)
+  Append to chat window
+
+renderUserMessage(text):
+  Create right-aligned bubble div
+  Append to chat window
+
+showTypingIndicator() / hideTypingIndicator():
+  Show/hide animated 3-dot div
+
+Issue detail modal:
+  On badge click: call api.getIssueById(issueId)
+  Populate Bootstrap modal with issue details tabs
+  Show modal via Bootstrap Modal API
+
+assets/js/dashboard.js:
+--------------------------------------------------------------------------------
+On page load:
+  Call getDashboardStats()
+  Populate 4 stat cards with animation (count-up effect)
+  Initialize charts:
+    doughnutChart (issue type distribution)
+    barChart (priority distribution)
+    lineChart (daily trend, last 30 days)
+  Load patterns -> render pattern cards
+  Load recent critical -> render table rows
+
+Auto-refresh every 60 seconds:
+  Re-fetch stats, update numbers and charts
+
+Chart.js config:
+  Dark theme for all charts
+  Responsive: true
+  Color palette:
+    Critical : #dc3545
+    High     : #fd7e14
+    Medium   : #0d6efd
+    Low      : #198754
+    Others   : #6f42c1, #20c997, #ffc107
+
+================================================================================
+BACKEND ROUTERS
+================================================================================
+
+routers/chat.py:
+--------------------------------------------------------------------------------
+WebSocket /ws/chat/{session_id}:
+  On connect: accept, load session history
+  On message:
+    1. Parse JSON, extract message text
+    2. Send typing frame: {"type":"typing"}
+    3. Call chatbot.chat(session_id, message)
+    4. Send response frame:
+       {
+         "type":           "response",
+         "message":        string,
+         "intent":         string,
+         "entities":       dict,
+         "matched_issues": [string],
+         "confidence":     float
+       }
+  On disconnect: save session, log
+
+POST /api/v1/chat (REST fallback):
+  Body: {session_id, message}
+  Same processing as WebSocket
+  Return same response shape
+
+GET /api/v1/sessions/{session_id}:
+  Load session JSON file
+  Return history array
+
+routers/issues.py:
+--------------------------------------------------------------------------------
+GET /api/v1/issues/search:
+  Query params: q, priority, issue_type,
+                status, date_from, date_to
+  Call json_store.search_issues(filters)
+  Return filtered list
+
+GET /api/v1/issues/{issue_id}:
+  Call json_store.get_issue_by_id(issue_id)
+  Return issue dict or 404
+
+GET /api/v1/similar/{issue_id}:
+  Get issue by ID
+  Build query from title + description
+  Search FAISS vector store top 5
+  Return similar issues with scores
+
+routers/dashboard.py:
+--------------------------------------------------------------------------------
+GET /api/v1/dashboard/stats:
+  Call json_store.get_dashboard_stats()
+  Return full stats dict
+
+================================================================================
+CHATBOT COMPONENTS
+================================================================================
+
+intent_classifier.py:
+--------------------------------------------------------------------------------
+Intents to support:
+  explain_failure     -> why, reason, cause, failing, error
+  get_resolution      -> fix, resolve, solution, how to
+  find_similar_issue  -> similar, same, before, happened
+  get_status          -> status, open, closed, pending
+  estimate_time       -> how long, eta, when, time to fix
+  list_recent_issues  -> recent, latest, today, this week
+
+Logic: keyword matching first -> ML model fallback
+
+entity_extractor.py:
+--------------------------------------------------------------------------------
+Extract from message:
+  - API/service names (loaded from Jira component list)
+  - Error codes: 500, 503, 404, 401, timeout, null pointer,
+    connection refused, OOM, deadlock, SSL
+  - Jira issue ID pattern: [A-Z]+-\d+
+  - Timeframe: today, yesterday, this week, last week
+  - Priority: critical, high, medium, low
+
+rag_engine.py:
+--------------------------------------------------------------------------------
+Class JiraRAGEngine:
+  retrieve(query, entities, intent, top_k=5):
+    * Enrich query with entity terms
+    * Search FAISS vector store
+    * Post-filter by timeframe and priority
+    * Re-rank by intent (resolved first for get_resolution)
+    * Return list of issue dicts
+  build_context(results): format as readable string
+
+response_generator.py:
+--------------------------------------------------------------------------------
+Templates for each intent with placeholders:
+  explain_failure    : cause, past tickets, avg time, top fix
+  get_resolution     : recommended fix, steps, issue list
+  find_similar_issue : issue summaries with similarity %
+  estimate_time      : avg/min/max hours, priority context
+  list_recent_issues : last N issues with status
+  no_match           : fallback with suggestions
+
+chatbot.py (Orchestrator):
+--------------------------------------------------------------------------------
+Class JiraIssueChatbot with method chat(session_id, message):
+  1. Classify intent using IntentClassifier
+  2. Extract entities using JiraEntityExtractor
+  3. Enrich entities from ConversationMemory
+  4. Retrieve top 5 issues using JiraRAGEngine
+  5. Generate response using ResponseGenerator
+  6. Update ConversationMemory
+  7. Return full result dict
+
+================================================================================
+ML PIPELINE
+================================================================================
+
+ml/train_embeddings.py:
+--------------------------------------------------------------------------------
+  Load data/jira_issues.json
+  Merge title + description + comments + resolution_comment
+  Clean text (preprocessor.py)
+  Train Word2Vec:
+    vector_size=128, window=5,
+    min_count=2, sg=1, epochs=30
+  Save to models/jira_word2vec.model
+  Print: vocab size, top 20 words
+
+ml/train_model.py:
+--------------------------------------------------------------------------------
+  Load jira_issues.json
+  Build labels from resolution + issue_type + priority
+  Build tokenizer -> save models/tokenizer.pkl
+  Build label encoder -> save models/label_encoder.pkl
+  Build embedding matrix from Word2Vec
+  Build BiLSTM + Attention model:
+    Embedding(pretrained) ->
+    BiLSTM(128, return_sequences=True) ->
+    BiLSTM(64, return_sequences=True) ->
+    AttentionLayer(64) ->
+    Dense(128, relu) -> Dropout(0.4) ->
+    Dense(64, relu) ->
+    Dense(num_classes, softmax)
+  Train Phase 1 (frozen embeddings, 50 epochs, lr=1e-3)
+  Train Phase 2 (unfrozen, 10 epochs, lr=1e-4)
+  EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
+  Save best model to models/best_model.keras
+  Print: accuracy, per-class F1 score
+
+ml/build_index.py:
+--------------------------------------------------------------------------------
+  Load jira_issues.json
+  Load Word2Vec model
+  For each issue:
+    text = clean(title + description + resolution_comment)
+    vector = mean of word vectors -> L2 normalize
+  Build FAISS IndexFlatIP(128)
+  Add all vectors
+  Save index: faiss.write_index -> models/jira.index
+  Save metadata: models/jira_meta.json via JsonStore
+  Print: total indexed, index size
+
+services/model_service.py (Singleton):
+--------------------------------------------------------------------------------
+  Load on first instantiation:
+    * Keras BiLSTM model
+    * Tokenizer (pickle)
+    * LabelEncoder (pickle)
+    * Resolution time regressor (sklearn, pickle)
+  predict_pattern(text)       -> label, confidence, top3
+  predict_intent(text)        -> intent string
+  estimate_resolution(feats)  -> float hours
+
+services/vector_store.py:
+--------------------------------------------------------------------------------
+  FAISS IndexFlatIP + metadata list
+  get_vector(text): Word2Vec mean -> L2 normalize
+  add_issues(issues, preprocessor): bulk index
+  search(query, preprocessor, top_k): return ranked list
+  save(index_path, meta_path)
+  load(index_path, meta_path)
+
+================================================================================
+CSS — assets/css/custom.css
+================================================================================
+
+Root variables:
+  --sidebar-bg   : #1a1a2e
+  --chat-bg      : #0f0f23
+  --bot-msg-bg   : #2d2d44
+  --user-msg-bg  : #0d6efd
+  --card-bg      : #1e1e35
+  --border-color : #2d2d50
+  --text-primary : #e0e0e0
+  --text-muted   : #8888aa
+
+Sidebar:
+  width: 260px, fixed left, full height
+  overflow-y: auto, z-index: 1000
+
+Chat window:
+  height: calc(100vh - 140px)
+  overflow-y: auto
+  padding: 1rem
+  scroll-behavior: smooth
+
+Bot message:
+  max-width: 75%
+  border-radius: 0 16px 16px 16px
+  margin-bottom: 1rem
+
+User message:
+  max-width: 75%
+  margin-left: auto
+  border-radius: 16px 0 16px 16px
+  margin-bottom: 1rem
+
+Typing indicator:
+  3 spans with class "dot"
+  CSS keyframe "bounce":
+    0%,80%,100% -> translateY(0)
+    40%         -> translateY(-8px)
+  Each dot: animation-delay 0s, 0.15s, 0.3s
+
+Suggestion chips:
+  cursor: pointer
+  transition: all 0.2s ease
+  hover: bg-primary text-white
+
+Model ready indicator:
+  8px circle, bg #00ff88
+  animation: pulse 2s infinite
+  keyframe pulse: box-shadow glow effect
+
+Scrollbar (webkit):
+  width: 4px
+  track: transparent
+  thumb: #2d2d50
+  thumb hover: #4a4a70
+
+================================================================================
+DOCKER — SINGLE CONTAINER
+================================================================================
+
+Dockerfile (backend/):
+--------------------------------------------------------------------------------
+FROM python:3.10-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 8000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0",
+     "--port", "8000", "--reload"]
+
+docker-compose.yml:
+--------------------------------------------------------------------------------
+version: "3.8"
+services:
+  app:
+    build: ./backend
+    ports: ["8000:8000"]
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./frontend:/app/frontend
+    environment:
+      - DATA_DIR=data
+      - MODELS_DIR=models
+
+requirements.txt:
+--------------------------------------------------------------------------------
+fastapi
+uvicorn[standard]
+websockets
+tensorflow
+gensim
+faiss-cpu
+scikit-learn
+nltk
+numpy
+pandas
+python-multipart
+aiofiles
+
+================================================================================
+SAMPLE CONVERSATION FLOWS TO IMPLEMENT
+================================================================================
+
+Flow 1 — API Failure Identification:
+  User -> "Payment API throwing 503 since morning"
+  Bot  -> "Found 8 similar past issues.
+           Most likely cause: DB connection pool exhaustion
+           Common fix: increase pool size to 50
+           Avg resolution: 3.2 hours
+           Related: [PROJ-1001] [PROJ-1892] [PROJ-2341]"
+
+Flow 2 — Follow-up using memory:
+  User -> "How long did it take to fix?"
+  Bot  -> [memory fills Payment API from last turn]
+           "For Payment API 503 issues:
+            Avg: 3.2 hours | Min: 1.1h | Max: 6.4h
+            Based on 8 past resolutions"
+
+Flow 3 — Resolution Steps:
+  User -> "What is the fix for auth timeout?"
+  Bot  -> "For Auth API timeouts, past fixes:
+           1. Sync server clocks via NTP
+           2. Extend JWT expiry to 24h
+           3. Restart auth service pod
+           Resolved in PROJ-2101 and PROJ-1755"
+
+Flow 4 — Recent Issues List:
+  User -> "Show critical issues from this week"
+  Bot  -> "5 critical issues this week:
+           * [PROJ-3001] DB deadlock — In Progress
+           * [PROJ-2998] Auth service down — Closed (2.1h)
+           * [PROJ-2991] Order API 500 — Open
+           ..."
+
+================================================================================
+BUILD ORDER
+================================================================================
+
+Step 1  : Project scaffold (all folders + empty files)
+Step 2  : data/jira_issues.json with 50 sample issues
+Step 3  : services/json_store.py (all methods)
+Step 4  : preprocessor.py
+Step 5  : ml/train_embeddings.py -> train Word2Vec
+Step 6  : ml/train_model.py -> train BiLSTM
+Step 7  : ml/build_index.py -> build FAISS index
+Step 8  : services/model_service.py (singleton loader)
+Step 9  : services/vector_store.py (FAISS wrapper)
+Step 10 : intent_classifier.py
+Step 11 : entity_extractor.py
+Step 12 : rag_engine.py
+Step 13 : response_generator.py
+Step 14 : conversation_memory.py (JSON sessions)
+Step 15 : chatbot.py (orchestrator)
+Step 16 : routers/chat.py (WebSocket + REST)
+Step 17 : routers/issues.py
+Step 18 : routers/dashboard.py
+Step 19 : main.py (startup + mount frontend)
+Step 20 : frontend/assets/css/custom.css
+Step 21 : frontend/assets/js/api.js
+Step 22 : frontend/assets/js/chat.js
+Step 23 : frontend/assets/js/dashboard.js
+Step 24 : frontend/index.html
+Step 25 : frontend/dashboard.html
+Step 26 : frontend/issues.html
+Step 27 : Dockerfile + docker-compose.yml
+Step 28 : requirements.txt + README.md
+Step 29 : End-to-end integration test
+Step 30 : Docker build + verify all pages work
+
+================================================================================
+QUICK START COMMANDS
+================================================================================
+
+# 1. Build and start
+docker-compose up --build
+
+# 2. Train models (first time only)
+docker exec jira-ai python ml/train_embeddings.py
+docker exec jira-ai python ml/train_model.py
+docker exec jira-ai python ml/build_index.py
+
+# 3. Open in browser
+http://localhost:8000               <- Chat Interface
+http://localhost:8000/dashboard.html  <- Dashboard
+http://localhost:8000/issues.html     <- Issue Explorer
+
+================================================================================
+CONSTRAINTS
+================================================================================
+
+STORAGE:
+  - JSON files only
+  - No PostgreSQL, No SQLite, No MongoDB, No Redis
+  - No cloud storage, no external services
+  - All data read/written as local JSON files
+
+FRONTEND:
+  - HTML5 + Bootstrap 5.3 + Vanilla JS + Chart.js only
+  - No React, Vue, Angular, or any JS framework
+  - No CSS frameworks other than Bootstrap 5
+  - No jQuery
+
+BACKEND:
+  - Python only, FastAPI only
+  - No Node.js, no other backend frameworks
+
+ML:
+  - No OpenAI, No Hugging Face inference API
+  - No any third-party AI APIs
+  - All models trained locally on jira_issues.json
+  - Must work 100% offline after setup
+
+DEPLOYMENT:
+  - Single Docker container
+  - One docker-compose up command to start everything
+  - Frontend served by FastAPI (no separate web server)
+
+================================================================================
+END OF PROMPT
+================================================================================
